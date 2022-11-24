@@ -1,4 +1,4 @@
-Get_Movement_Plots <- function(name_last, name_first, date_start, date_end) {
+Get_Movement_Plots <- function(name_last, name_first, date_start = "2022-03-01", date_end = "2022-12-01") {
   
   library(tidyverse)
   library(baseballr)
