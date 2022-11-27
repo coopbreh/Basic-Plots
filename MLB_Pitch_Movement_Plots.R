@@ -16,6 +16,7 @@ Get_Movement_Plots <- function(name_last, name_first, date_start = "2022-03-01",
                     "Knuckleball" = "beige")
   
   player_id <- baseballr::playerid_lookup(last_name = name_last, first_name = name_first) %>%
+    dplyr::filter(!is.na(fangraphs_id)) %>%
     pull(mlbam_id)
   
   player_data <- baseballr::statcast_search_pitchers(start_date = date_start,
