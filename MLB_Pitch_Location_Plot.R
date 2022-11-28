@@ -31,16 +31,28 @@ Get_Pitch_Plots <- function(name_last, name_first, date_start = "2022-03-01", da
                   plate_x_pv = -1 * plate_x)
   
   if (pitch_type == "Breaking Ball" | pitch_type == "breaking ball") {
-    pitch_data <- player_cleaned_data 
-      %>% dplyr::filter(pitch_name %in% c("Slider","Curveball","Knuckle Curve"))
+    pitch_data <- player_cleaned_data %>% 
+      dplyr::filter(pitch_name %in% c("Slider","Curveball","Knuckle Curve"))
   } else if (pitch_type == "Fastball" | pitch_type == "fastball") {
     pitch_data <- player_cleaned_data %>% 
       dplyr::filter(pitch_name %in% c("4-Seam Fastball","Sinker","Cutter"))    
-  } else if (pitch_type == "Offspeed" | pitch_type == "offspeed") {
-    pitch_data <- player_cleaned_data %>% 
-      dplyr::filter(pitch_name %in% c("Changeup","Split-Finger"))
   } else if (pitch_type == "All" | pitch_type == "all") {
     pitch_data <- player_cleaned_data
+  } else if (pitch_type == "Four Seam" | pitch_type == "4-Seam Fastball") {
+    pitch_data <- player_cleaned_data %>% 
+      dplyr::filter(pitch_name == "4-Seam Fastball")
+  } else if (pitch_type == "Sinker" | pitch_type == "sinker") {
+    pitch_data <- player_cleaned_data %>% 
+      dplyr::filter(pitch_name == "Sinker")
+  } else if (pitch_type == "Cutter" | pitch_type == "cutter") {
+    pitch_data <- player_cleaned_data %>% 
+      dplyr::filter(pitch_name == "Cutter")
+  } else if (pitch_type == "Slider" | pitch_type == "slider") {
+    pitch_data <- player_cleaned_data %>%
+      dplyr::filter(pitch_name == "Slider")
+  } else if (pitch_type == "Curveball" | pitch_type == "curveball") {
+    pitch_data <- player_cleaned_data %>%
+      dplyr::filter(pitch_type %in% c("Curveball", "Knuckle Curve"))
   } else if (pitch_type == "Changeup" | pitch_type == "Changeup") {
     pitch_data <- player_cleaned_data %>% 
       dplyr::filter(pitch_name %in% c("Changeup","Split-Finger"))
