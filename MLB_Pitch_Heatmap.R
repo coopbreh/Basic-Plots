@@ -46,19 +46,19 @@ Get_Pitch_Heatmap <- function(name_last, name_first, date_start = "2022-03-01", 
       dplyr::filter(pitch_name %in% c("Changeup","Split-Finger"))
   }
   
-  ggplot(pitch_data, aes(x=plate_x_pv ,y=plate_z)) +
-    stat_density_2d(aes(fill = ..density..), geom="raster", contour = F) +
-    scale_fill_distiller(type = "div", palette = "RdYlBu") +
-    xlim(c(-2,2)) +
-    ylim(c(0,5)) +
-    annotate('rect', xmin = -0.85, xmax = 0.85, ymin = 1.6, ymax = 3.5, fill = 'black', color = 'black', alpha = 0.1) +
-    theme_bw() +
-    labs(title = paste(name_first,name_last,pitch_type,"Location"),
-         subtitle = paste(str_sub(player_cleaned_data$game_date, 1, 4), "Season"),
-         x = "Pitcher's Perspective",
-         y = "",
-         fill = "% Thrown") +
-    coord_equal()
+  ggplot2::ggplot(pitch_data, aes(x=plate_x_pv ,y=plate_z)) +
+    ggplot2::stat_density_2d(aes(fill = ..density..), geom="raster", contour = FALSE) +
+    ggplot2::scale_fill_distiller(type = "div", palette = "RdYlBu") +
+    ggplot2::xlim(-2, 2) +
+    ggplot2::ylim(0, 5) +
+    ggplot2::labs(title = paste(name_first,name_last,pitch_type,"Location"),
+                  subtitle = paste(str_sub(player_cleaned_data$game_date, 1, 4), "Season"),
+                  x = "Pitcher's Perspective",
+                  y = "",
+                  fill = "% Thrown") +
+    ggplot2::theme_bw() +
+    ggplot2::coord_equal() +
+    ggplot2::annotate('rect', xmin = -0.85, xmax = 0.85, ymin = 1.6, ymax = 3.5, fill = 'black', color = 'black', alpha = 0.1) +
   
 }
 
