@@ -28,7 +28,8 @@ Get_Pitch_Stats_Table <- function(name_last, name_first, date_start = "2022-03-0
     mutate(Strike = ifelse(description %in% c("foul", "called_strike", "swinging_strike",
                                               "foul_tip", "swinging_strike_blocked"), 1, 0),
            CalledStrike = ifelse(description %in% c("called_strike"), 1, 0),
-           Whiff = ifelse(description %in% c("swinging_strike", "swinging_strike_blocked"), 1, 0)) %>%
+           Whiff = ifelse(description %in% c("swinging_strike", "swinging_strike_blocked"), 1, 0),
+           BattedBalls = ifelse()) %>%
     rename(`Pitch Type` = pitch_type) %>%
     group_by(player_name, `Pitch Type`) %>%
     summarise(Count = n(),
@@ -60,5 +61,6 @@ Get_Pitch_Stats_Table <- function(name_last, name_first, date_start = "2022-03-0
   
 }
 
-Get_Pitch_Stats_Table(name_first = "Chris", name_last = "Sale", date_start = "2018-03-01", date_end = "2018-12-01")
+Get_Pitch_Stats_Table(name_first = "Jalen", name_last = "Beeks", date_start = "2022-03-01", date_end = "2022-12-01")
 
+# Save plots 600 x 375
