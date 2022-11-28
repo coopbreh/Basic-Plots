@@ -24,9 +24,6 @@ Get_Pitch_Heatmap <- function(name_last, name_first, date_start = "2022-03-01", 
   } else if (pitch_type == "Fastball" | pitch_type == "fastball") {
     pitch_data <- player_cleaned_data %>% 
       dplyr::filter(pitch_name %in% c("4-Seam Fastball","Sinker","Cutter"))    
-  } else if (pitch_type == "Offspeed" | pitch_type == "offspeed") {
-    pitch_data <- player_cleaned_data %>% 
-      dplyr::filter(pitch_name %in% c("Changeup","Split-Finger"))
   } else if (pitch_type == "All" | pitch_type == "all") {
     pitch_data <- player_cleaned_data
   } else if (pitch_type == "Four Seam" | pitch_type == "4-Seam Fastball") {
@@ -67,11 +64,7 @@ Get_Pitch_Heatmap <- function(name_last, name_first, date_start = "2022-03-01", 
 
 library(patchwork)
 
-p1<-Get_Pitch_Heatmap(name_first = "Wandy", name_last = "Peralta", pitch_type = "Breaking Balls",
+p1<-Get_Pitch_Heatmap(name_first = "Jalen", name_last = "Beeks", pitch_type = "Changeup",
                       date_start = "2020-03-01", date_end = "2020-12-01")
-p2<-Get_Pitch_Heatmap(name_first = "Wandy", name_last = "Peralta", pitch_type = "Offspeed")
+p2<-Get_Pitch_Heatmap(name_first = "Jalen", name_last = "Beeks", pitch_type = "Changeup")
 p1+p2
-
-Get_Pitch_Heatmap(name_first = "Jalen", name_last = "Beeks", pitch_type = "Changeup")
-
-playerid_lookup(first_name = "A.J.", last_name = "Puk")
