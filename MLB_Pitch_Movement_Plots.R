@@ -20,8 +20,8 @@ Get_Movement_Plots <- function(name_last, name_first, date_start = "2022-03-01",
     pull(mlbam_id)
   
   player_data <- baseballr::statcast_search_pitchers(start_date = date_start,
-                                          end_date = date_end,
-                                          pitcherid = player_id)
+                                                     end_date = date_end,
+                                                     pitcherid = player_id)
   
   player_cleaned_data <- player_data %>%
     dplyr::filter(!is.na(pfx_x), !is.na(pfx_z),
@@ -50,7 +50,8 @@ Get_Movement_Plots <- function(name_last, name_first, date_start = "2022-03-01",
                   x = "Horizontal Break",
                   y = "Induced Vertical Break",
                   color = "Pitch Name", size = "Velocity") +
-    ggplot2::theme_bw()
+    ggplot2::theme_bw() +
+    ggplot2::coord_fixed()
   
 }
 
