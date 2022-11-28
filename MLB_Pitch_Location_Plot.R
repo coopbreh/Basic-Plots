@@ -31,11 +31,14 @@ Get_Pitch_Plots <- function(name_last, name_first, date_start = "2022-03-01", da
                   plate_x_pv = -1 * plate_x)
   
   if (pitch_type == "Breaking Ball" | pitch_type == "breaking ball") {
-    pitch_data <- player_cleaned_data %>% dplyr::filter(pitch_name %in% c("Slider","Curveball","Knuckle Curve"))
+    pitch_data <- player_cleaned_data 
+      %>% dplyr::filter(pitch_name %in% c("Slider","Curveball","Knuckle Curve"))
   } else if (pitch_type == "Fastball" | pitch_type == "fastball") {
-    pitch_data <- player_cleaned_data %>% dplyr::filter(pitch_name %in% c("4-Seam Fastball","Sinker","Cutter"))    
+    pitch_data <- player_cleaned_data %>% 
+      dplyr::filter(pitch_name %in% c("4-Seam Fastball","Sinker","Cutter"))    
   } else if (pitch_type == "Offspeed" | pitch_type == "offspeed") {
-    pitch_data <- player_cleaned_data %>% dplyr::filter(pitch_name %in% c("Changeup","Split-Finger"))
+    pitch_data <- player_cleaned_data %>% 
+      dplyr::filter(pitch_name %in% c("Changeup","Split-Finger"))
   } else if (pitch_type == "All" | pitch_type == "all") {
     pitch_data <- player_cleaned_data
   } else if (pitch_type == "Changeup" | pitch_type == "Changeup") {
