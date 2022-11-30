@@ -11,7 +11,7 @@ Get_Movement_Plots <- function(name_last, name_first, date_start = "2022-03-01",
                     "Curveball" = "green",
                     "Knuckle Curve" = "pink",
                     "Slider" = "orange",
-                    "Changeup" = "gray50",
+                    "Changeup" = "gray",
                     "Split-Finger" = "gold",
                     "Knuckleball" = "beige")
   
