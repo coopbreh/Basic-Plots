@@ -58,7 +58,7 @@ Get_Pitch_Heatmap <- function(name_last, name_first, date_start = "2022-03-01", 
                   fill = "% Thrown") +
     ggplot2::theme_bw() +
     ggplot2::coord_equal() +
-    ggplot2::annotate('rect', xmin = -0.85, xmax = 0.85, ymin = 1.6, ymax = 3.5, fill = 'black', color = 'black', alpha = 0.1) +
+    import_zone()
   
 }
 
