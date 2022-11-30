@@ -24,8 +24,6 @@ Get_Pitch_Heatmap <- function(name_last, name_first, date_start = "2022-03-01", 
   } else if (pitch_type == "Fastball" | pitch_type == "fastball") {
     pitch_data <- player_cleaned_data %>% 
       dplyr::filter(pitch_name %in% c("4-Seam Fastball","Sinker","Cutter"))    
-  } else if (pitch_type == "All" | pitch_type == "all") {
-    pitch_data <- player_cleaned_data
   } else if (pitch_type == "Four Seam" | pitch_type == "4-Seam Fastball") {
     pitch_data <- player_cleaned_data %>% 
       dplyr::filter(pitch_name == "4-Seam Fastball")
