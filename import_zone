@@ -1,0 +1,15 @@
+import_zone <- function(color = "black") {
+
+  leftStrikezone <- -0.85
+  rightStrikezone <- 0.85
+  topStrikezone <- 3.5
+  bottomStrikezone <- 1.6
+  
+  Strikezone <- data.frame(
+    x=c(leftStrikezone, leftStrikezone, rightStrikezone, rightStrikezone, leftStrikezone),
+    y=c(bottomStrikezone, topStrikezone, topStrikezone, bottomStrikezone, bottomStrikezone))
+    
+  geom_path(aes(.data$x, .data$y), data=Strikezone,
+            lwd=1, col=color, inherit.aes = FALSE)
+            
+}
