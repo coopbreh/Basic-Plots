@@ -28,8 +28,7 @@ Get_Pitch_Stats_Table <- function(name_last, name_first, date_start = "2022-03-0
     dplyr::mutate(Strike = ifelse(description %in% c("foul", "called_strike", "swinging_strike",
                                               "foul_tip", "swinging_strike_blocked"), 1, 0),
            CalledStrike = ifelse(description %in% c("called_strike"), 1, 0),
-           Whiff = ifelse(description %in% c("swinging_strike", "swinging_strike_blocked"), 1, 0),
-           BattedBalls = ifelse()) %>%
+           Whiff = ifelse(description %in% c("swinging_strike", "swinging_strike_blocked"), 1, 0)) %>%
     dplyr::rename(`Pitch Type` = pitch_type) %>%
     dplyr::group_by(player_name, `Pitch Type`) %>%
     dplyr::summarise(Count = n(),
