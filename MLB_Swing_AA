@@ -1,0 +1,332 @@
+library(tidyverse)
+library(baseballr)
+library(CalledStrike)
+
+player_id <- baseballr::playerid_lookup(last_name = "Webb", first_name = "Logan") %>%
+  dplyr::filter(!is.na(fangraphs_id)) %>%
+  pull(mlbam_id)
+
+player_data <- baseballr::statcast_search_pitchers(start_date = "2023-03-01",
+                                                   end_date = "2023-12-01",
+                                                   pitcherid = player_id)
+
+player_data <- baseballr::scrape_statcast_savant(
+  start_date = "2023-04-01",
+  end_date = "2023-10-01"
+)
+
+player_cleaned_data <- player_data %>%
+  dplyr::filter(!is.na(pfx_x), !is.na(pfx_z),
+                game_type == "R") %>%
+  dplyr::mutate(pfx_x_inches_pv = -12 * pfx_x,
+                pfx_z_inches = 12 * pfx_z,
+                plate_x_pv = -1 * plate_x)
+
+player_data %>%
+  mutate(
+    zone = as.factor(zone)
+  ) %>%
+  #filter(zone == "1") %>%
+  ggplot(aes(plate_x, plate_z, color = zone)) +
+  geom_point(size = 4, alpha = 0.7) +
+  xlim(-2,2) + ylim(0,4.5) +
+  add_zone_c() +
+  theme_bw() +
+  coord_fixed() +
+  labs(
+    title = "Logan Webb Pitches by Zone",
+    subtitle = "2023 Season",
+    x = "Pitcher's Perspective",
+    y = ""
+  )
+
+
+
+## Create Swing% Above Average Smoothed Plot
+player_data <- baseballr::scrape_statcast_savant(
+  start_date = "2023-04-01",
+  end_date = "2023-04-06"
+)
+
+player_data1 <- baseballr::scrape_statcast_savant(
+  start_date = "2023-05-01",
+  end_date = "2023-05-06"
+)
+
+player_data2 <- baseballr::scrape_statcast_savant(
+  start_date = "2023-06-01",
+  end_date = "2023-06-06"
+)
+
+season_data <- rbind(player_data, player_data1, player_data2)
+rm(player_data, player_data1, player_data2)
+
+season_data <- season_data %>%
+  filter(
+    !is.na(plate_x), 
+    !is.na(plate_z),
+  ) %>%
+  mutate(
+    pfx_x_inches_pv = -12 * pfx_x,
+    pfx_z_inches = 12 * pfx_z,
+    plate_x_pv = -1 * plate_x
+  )
+
+
+unique(season_data$description)
+
+IsSwing = c(
+  "swinging_strike",
+  "foul",
+  "foul_tip",
+  "swinging_strike_blocked",
+  "foul_bunt",
+  "missed_bunt",
+  "hit_into_play",
+  "bunt_foul_tip"
+)
+
+## Create Swing percentage averages for each gameday zone
+swing_averages <- season_data %>% 
+  mutate(
+    SwingCheck = if_else(description %in% IsSwing, TRUE, FALSE)
+  ) %>%
+  group_by(zone) %>%
+  summarise(
+    MLB_Swing_Pct = round(mean(SwingCheck, na.rm = T),3)
+  ) %>%
+  select(zone, MLB_Swing_Pct)
+
+
+## Create GAM function for Swing%AA
+swing_pct_aa_gam_fit <- function(df) {
+  gam(as.numeric(swing_pct_aa) ~
+        s(plate_x_pv, plate_z),
+      data = df)
+}
+
+## Create grid from the GAM fitted values
+swing_grid_predict <- function(fit){
+  grid <- expand.grid(plate_x_pv = seq(-1.5, 1.5, length=50),
+                      plate_z = seq(1, 4, length=50))
+  grid$lp <- predict(fit,grid, type = "response")
+  
+  grid
+}
+
+
+## Pull Logan Webb's Data
+player_id <- baseballr::playerid_lookup(last_name = "Webb", first_name = "Logan") %>%
+  dplyr::filter(!is.na(fangraphs_id)) %>%
+  pull(mlbam_id)
+
+player_data <- baseballr::statcast_search_pitchers(start_date = "2023-03-01",
+                                                   end_date = "2023-12-01",
+                                                   pitcherid = player_id)
+
+player_cleaned_data <- player_data %>%
+  dplyr::filter(!is.na(pfx_x), !is.na(pfx_z),
+                game_type == "R") %>%
+  dplyr::mutate(
+    pfx_x_inches_pv = -12 * pfx_x,
+    pfx_z_inches = 12 * pfx_z,
+    plate_x_pv = -1 * plate_x
+  )
+
+
+## Create Swing percentage averages for each gameday zone for Logan Webb
+player_swing_averages <- player_cleaned_data %>% 
+  mutate(
+    SwingCheck = if_else(description %in% IsSwing, TRUE, FALSE)
+  ) %>%
+  group_by(zone) %>%
+  summarise(
+    Avg_Swing_Pct = round(mean(SwingCheck, na.rm = T),3)
+  ) %>%
+  select(zone, Avg_Swing_Pct)
+
+test <- player_cleaned_data %>% 
+  left_join(., player_swing_averages, by = "zone") %>%
+  left_join(., swing_averages, by = "zone") %>%
+  mutate(
+    swing_pct_aa = Avg_Swing_Pct - MLB_Swing_Pct
+  ) %>%
+  swing_pct_aa_gam_fit() %>%
+  swing_grid_predict()
+
+test %>%
+  ggplot() + 
+  geom_tile(aes(x = plate_x, y = plate_z, fill = lp)) +
+  scale_fill_gradient2(
+    low = "blue",
+    mid = "white",
+    high = "red",
+    midpoint = 0,
+    labels = scales::label_percent()
+  ) +
+  add_zone_c(Color = "black") +
+  xlim(-1.5, 1.5) + ylim(1,4) +
+  theme_bw() + 
+  coord_fixed() +
+  theme(plot.title = element_text(colour = "black", size = 20, face = "bold",
+                                  hjust = 0.5, vjust = 0.8, angle = 0),
+        plot.subtitle = element_text(colour = "black", size = 14,
+                                     hjust = 0.5, vjust = 0.8, angle = 0),
+        text=element_text(size=14),
+        panel.border = element_rect(fill = NA, colour = "black", linewidth = 2),
+        axis.title = element_text(face = "bold")) +
+  labs(
+    title = "Logan Webb Swing% Above Average",
+    subtitle = "2023 Season",
+    x = "Pitcher's Perspective",
+    y = "",
+    fill = "% Diff"
+  ) -> Webb_Swing_AA
+
+
+## Now lets do it for a different style of pitcher: Tyler Glasnow
+## Pull Logan Webb's Data
+player_id <- baseballr::playerid_lookup(last_name = "Woo", first_name = "Bryan") %>%
+  dplyr::filter(!is.na(fangraphs_id)) %>%
+  pull(mlbam_id)
+
+player_data <- baseballr::statcast_search_pitchers(start_date = "2023-03-01",
+                                                   end_date = "2023-12-01",
+                                                   pitcherid = player_id)
+
+player_cleaned_data <- player_data %>%
+  dplyr::filter(!is.na(pfx_x), !is.na(pfx_z),
+                game_type == "R") %>%
+  dplyr::mutate(
+    pfx_x_inches_pv = -12 * pfx_x,
+    pfx_z_inches = 12 * pfx_z,
+    plate_x_pv = -1 * plate_x
+  )
+
+
+## Create Swing percentage averages for each gameday zone for Logan Webb
+player_swing_averages <- player_cleaned_data %>% 
+  mutate(
+    SwingCheck = if_else(description %in% IsSwing, TRUE, FALSE)
+  ) %>%
+  group_by(zone) %>%
+  summarise(
+    Avg_Swing_Pct = round(mean(SwingCheck, na.rm = T),3)
+  ) %>%
+  select(zone, Avg_Swing_Pct)
+
+test <- player_cleaned_data %>% 
+  left_join(., player_swing_averages, by = "zone") %>%
+  left_join(., swing_averages, by = "zone") %>%
+  mutate(
+    swing_pct_aa = Avg_Swing_Pct - MLB_Swing_Pct
+  ) %>%
+  swing_pct_aa_gam_fit() %>%
+  swing_grid_predict()
+
+test %>%
+  ggplot() + 
+  geom_tile(aes(x = plate_x, y = plate_z, fill = lp)) +
+  scale_fill_gradient2(
+    low = "blue",
+    mid = "white",
+    high = "red",
+    midpoint = 0,
+    labels = scales::label_percent()
+  ) +
+  add_zone_c(Color = "black") +
+  xlim(-1.5, 1.5) + ylim(1,4) +
+  theme_bw() + 
+  coord_fixed() +
+  theme(plot.title = element_text(colour = "black", size = 20, face = "bold",
+                                  hjust = 0.5, vjust = 0.8, angle = 0),
+        plot.subtitle = element_text(colour = "black", size = 14,
+                                     hjust = 0.5, vjust = 0.8, angle = 0),
+        text=element_text(size=14),
+        panel.border = element_rect(fill = NA, colour = "black", linewidth = 2),
+        axis.title = element_text(face = "bold")) +
+  labs(
+    title = "Bryan Woo Swing% Above Average",
+    subtitle = "2023 Season",
+    x = "Pitcher's Perspective",
+    y = "",
+    fill = "% Diff"
+  ) -> Woo_Swing_AA
+
+library(patchwork)
+
+Webb_Swing_AA + Woo_Swing_AA
+
+
+
+
+## Now for hitters -------------
+player_id <- baseballr::playerid_lookup(last_name = "Schwarber", first_name = "Kyle") %>%
+  dplyr::filter(!is.na(fangraphs_id)) %>%
+  pull(mlbam_id)
+
+player_data <- baseballr::statcast_search_batters(start_date = "2023-03-01",
+                                                   end_date = "2023-12-01",
+                                                   batterid = player_id)
+
+player_cleaned_data <- player_data %>%
+  dplyr::filter(!is.na(pfx_x), !is.na(pfx_z),
+                game_type == "R") %>%
+  dplyr::mutate(
+    pfx_x_inches_pv = -12 * pfx_x,
+    pfx_z_inches = 12 * pfx_z,
+    plate_x_pv = -1 * plate_x
+  )
+
+
+## Create Swing percentage averages for each gameday zone
+player_swing_averages <- player_cleaned_data %>% 
+  mutate(
+    SwingCheck = if_else(description %in% IsSwing, TRUE, FALSE)
+  ) %>%
+  group_by(zone) %>%
+  summarise(
+    Avg_Swing_Pct = round(mean(SwingCheck, na.rm = T),3)
+  ) %>%
+  select(zone, Avg_Swing_Pct)
+
+test <- player_cleaned_data %>% 
+  left_join(., player_swing_averages, by = "zone") %>%
+  left_join(., swing_averages, by = "zone") %>%
+  mutate(
+    swing_pct_aa = Avg_Swing_Pct - MLB_Swing_Pct
+  ) %>%
+  swing_pct_aa_gam_fit() %>%
+  swing_grid_predict()
+
+test %>%
+  ggplot() + 
+  geom_tile(aes(x = plate_x_pv, y = plate_z, fill = lp)) +
+  scale_fill_distiller(palette = "Spectral") +
+  #scale_fill_gradient2(
+  #  low = "blue",
+  #  mid = "white",
+  #  high = "red",
+  #  midpoint = 0,
+  #  labels = scales::label_percent()
+  #) +
+  add_zone_c(Color = "black") +
+  xlim(-1.5, 1.5) + ylim(1,4) +
+  theme_bw() + 
+  coord_fixed() +
+  theme(plot.title = element_text(colour = "black", size = 20, face = "bold",
+                                  hjust = 0.5, vjust = 0.8, angle = 0),
+        plot.subtitle = element_text(colour = "black", size = 14,
+                                     hjust = 0.5, vjust = 0.8, angle = 0),
+        text=element_text(size=14),
+        panel.border = element_rect(fill = NA, colour = "black", linewidth = 2),
+        axis.title = element_text(face = "bold")) +
+  labs(
+    title = "Kyle Schwarber Swing% Above Average",
+    subtitle = "2023 Season",
+    x = "Pitcher's Perspective",
+    y = "",
+    fill = "% Diff"
+  ) -> Schwarber_Swing_AA
+
+Seager_Swing_AA + Schwarber_Swing_AA
